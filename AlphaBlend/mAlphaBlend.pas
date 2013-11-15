@@ -20,7 +20,7 @@ uses
 
 resourcestring
   SName = '”¼“§–¾';
-  SVersion = '2.0.0';
+  SVersion = '2.0.2';
 
 type
   TAlphaBlendFrame = class(TFrame)
@@ -103,7 +103,7 @@ var
   Style: NativeInt;
 begin
   Style := GetWindowLong(Handle, GWL_EXSTYLE);
-  if FOpenStartup then
+  if Value then
   begin
     if (Style and WS_EX_LAYERED) = 0 then
       SetWindowLong(Handle, GWL_EXSTYLE, Style or WS_EX_LAYERED);

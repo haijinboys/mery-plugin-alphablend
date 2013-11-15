@@ -44,7 +44,8 @@ var
   Frame: TFrame;
 begin
   Frame := FList.Find(hwnd);
-  Frame.OnCommand(hwnd);
+  if Frame <> nil then
+    Frame.OnCommand(hwnd);
 end;
 
 function QueryStatus(hwnd: HWND; pbChecked: PBOOL): BOOL; stdcall;
@@ -164,5 +165,6 @@ exports
   PluginProc;
 
 begin
+  // ReportMemoryLeaksOnShutdown := True;
 
 end.
