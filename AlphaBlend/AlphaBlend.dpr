@@ -11,22 +11,20 @@ library AlphaBlend;
 {$RTTI EXPLICIT METHODS([]) FIELDS([]) PROPERTIES([])}
 {$WEAKLINKRTTI ON}
 
+{$R 'mPlugin.res' 'mPlugin.rc'}
+
 
 uses
-{$IF CompilerVersion > 22.9}
-  Winapi.Windows,
-  System.SysUtils,
-  System.Classes,
-{$ELSE}
   Windows,
   SysUtils,
   Classes,
-{$IFEND}
+  Themes,
   mCommon in 'mCommon.pas',
   mProp in 'mProp.pas' {PropForm},
   mFrame in 'mFrame.pas',
   mAlphaBlend in 'mAlphaBlend.pas',
-  mPlugin in 'mPlugin.pas';
+  mPlugin in 'mPlugin.pas',
+  mPerMonitorDpi in 'mPerMonitorDpi.pas';
 
 const
   IDS_MENU_TEXT = 1;
@@ -36,7 +34,9 @@ const
 var
   FList: TFrameList;
 
+{$IFDEF DEBUG}
 {$R *.res}
+{$ENDIF}
 
 
 procedure OnCommand(hwnd: HWND); stdcall;
@@ -112,6 +112,7 @@ begin
         for I := FList.Count - 1 downto 0 do
           FList[I].Free;
         FList.Free;
+        ThemeServices.Free;
       end
       else
       begin
@@ -165,6 +166,8 @@ exports
   PluginProc;
 
 begin
-  // ReportMemoryLeaksOnShutdown := True;
+{$IFDEF DEBUG}
+  ReportMemoryLeaksOnShutdown := True;
+{$ENDIF}
 
 end.

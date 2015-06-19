@@ -20,7 +20,7 @@ uses
 
 resourcestring
   SName = '”¼“§–¾';
-  SVersion = '2.0.2';
+  SVersion = '2.1.0';
 
 type
   TAlphaBlendFrame = class(TFrame)
@@ -77,7 +77,7 @@ begin
   Result := False;
   if FOpenStartup and IsChild(hwnd, GetFocus) then
   begin
-    Ctrl := GetKeyState(VK_CONTROL) < 0;
+    Ctrl := GetKeyState(VK_SHIFT) < 0;
     if Ctrl and (Msg.message = WM_MOUSEWHEEL) then
     begin
       AAlphaBlend := Round(FAlphaBlend * 100 / 255);

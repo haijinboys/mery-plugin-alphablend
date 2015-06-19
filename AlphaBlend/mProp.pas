@@ -11,10 +11,10 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls,
 {$IFEND}
-  MeryCtrls;
+  MeryCtrls, mPerMonitorDpi;
 
 type
-  TPropForm = class(TForm)
+  TPropForm = class(TScaledForm)
     AlphaBlendLabel: TLabel;
     AlphaBlendSpinEdit: TSpinEditEx;
     Bevel: TBevel;
@@ -35,8 +35,7 @@ function Prop(AOwner: TComponent; var AAlphaBlend: NativeInt): Boolean;
 
 var
   PropForm: TPropForm;
-  FFontName: string;
-  FFontSize: NativeInt;
+  FFont: TFont;
 
 implementation
 
@@ -72,12 +71,13 @@ begin
       Name := 'Tahoma';
       Size := 8;
     end;
+  FFont.Assign(Font);
   ReadIni;
   with Font do
   begin
-    ChangeScale(FFontSize, Size);
-    Name := FFontName;
-    Size := FFontSize;
+    ChangeScale(FFont.Size, Size);
+    Name := FFont.Name;
+    Size := FFont.Size;
   end;
 end;
 
@@ -104,11 +104,30 @@ begin
     Exit;
   with TMemIniFile.Create(S, TEncoding.UTF8) do
     try
-      FFontName := ReadString('MainForm', 'FontName', Font.Name);
-      FFontSize := ReadInteger('MainForm', 'FontSize', Font.Size);
+      with FFont do
+        if ValueExists('MainForm', 'FontName') then
+        begin
+          Name := ReadString('MainForm', 'FontName', Name);
+          Size := ReadInteger('MainForm', 'FontSize', Size);
+          Height := MulDiv(Height, 96, Screen.PixelsPerInch);
+        end
+        else if (Win32MajorVersion > 6) or ((Win32MajorVersion = 6) and (Win32MinorVersion >= 2)) then
+        begin
+          Assign(Screen.IconFont);
+          Height := MulDiv(Height, 96, Screen.PixelsPerInch);
+        end;
     finally
       Free;
     end;
 end;
+
+initialization
+
+FFont := TFont.Create;
+
+finalization
+
+if Assigned(FFont) then
+  FreeAndNil(FFont);
 
 end.
