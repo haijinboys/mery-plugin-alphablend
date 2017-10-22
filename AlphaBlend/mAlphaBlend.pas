@@ -3,7 +3,7 @@
 //
 // Copyright (c) Kuro. All Rights Reserved.
 // e-mail: info@haijin-boys.com
-// www:    http://www.haijin-boys.com/
+// www:    https://www.haijin-boys.com/
 // -----------------------------------------------------------------------------
 
 unit mAlphaBlend;
@@ -20,14 +20,15 @@ uses
 
 resourcestring
   SName = 'îºìßñæ';
-  SVersion = '3.0.0';
+  SVersion = '2.3.1';
 
 type
   TAlphaBlendFrame = class(TFrame)
   private
     { Private êÈåæ }
     FOpenStartup: Boolean;
-    FAlphaBlend: NativeInt;
+    FAlphaBlend: Integer;
+    FEnableShortCut: Boolean;
     function QueryProperties: Boolean;
     function SetProperties: Boolean;
     function PreTranslateMessage(hwnd: HWND; var Msg: tagMSG): Boolean;
@@ -38,8 +39,8 @@ type
     { Public êÈåæ }
     procedure OnCommand(hwnd: HWND); override;
     function QueryStatus(hwnd: HWND; pbChecked: PBOOL): BOOL; override;
-    procedure OnEvents(hwnd: HWND; nEvent: NativeInt; lParam: LPARAM); override;
-    function PluginProc(hwnd: HWND; nMsg: NativeInt; wParam: WPARAM; lParam: LPARAM): LRESULT; override;
+    procedure OnEvents(hwnd: HWND; nEvent: Cardinal; lParam: LPARAM); override;
+    function PluginProc(hwnd: HWND; nMsg: Cardinal; wParam: WPARAM; lParam: LPARAM): LRESULT; override;
   end;
 
 implementation
@@ -62,7 +63,7 @@ end;
 function TAlphaBlendFrame.SetProperties: Boolean;
 begin
   Result := False;
-  if Prop(nil, FAlphaBlend) then
+  if Prop(Handle, FAlphaBlend, FEnableShortCut) then
   begin
     SetAlphaBlend(FOpenStartup);
     Result := True;
@@ -72,24 +73,26 @@ end;
 function TAlphaBlendFrame.PreTranslateMessage(hwnd: HWND; var Msg: tagMSG): Boolean;
 var
   Ctrl: Boolean;
-  AAlphaBlend: NativeInt;
+  LAlphaBlend: Cardinal;
 begin
   Result := False;
+  if not FEnableShortCut then
+    Exit;
   if FOpenStartup and IsChild(hwnd, GetFocus) then
   begin
     Ctrl := GetKeyState(VK_SHIFT) < 0;
     if Ctrl and (Msg.message = WM_MOUSEWHEEL) then
     begin
-      AAlphaBlend := Round(FAlphaBlend * 100 / 255);
+      LAlphaBlend := Round(FAlphaBlend * 100 / 255);
       if ShortInt(HIWORD(Msg.wParam)) > 0 then
-        Inc(AAlphaBlend, 4)
+        Inc(LAlphaBlend, 4)
       else
-        Dec(AAlphaBlend, 4);
-      if AAlphaBlend > 100 then
-        AAlphaBlend := 100;
-      if AAlphaBlend < 1 then
-        AAlphaBlend := 1;
-      FAlphaBlend := Round(AAlphaBlend * 255 / 100);
+        Dec(LAlphaBlend, 4);
+      if LAlphaBlend > 100 then
+        LAlphaBlend := 100;
+      if LAlphaBlend < 1 then
+        LAlphaBlend := 1;
+      FAlphaBlend := Round(LAlphaBlend * 255 / 100);
       SetAlphaBlend(FOpenStartup);
       Result := True;
     end;
@@ -98,9 +101,9 @@ end;
 
 procedure TAlphaBlendFrame.SetAlphaBlend(const Value: Boolean);
 const
-  cUseAlpha: array [Boolean] of NativeInt = (0, LWA_ALPHA);
+  cUseAlpha: array [Boolean] of Integer = (0, LWA_ALPHA);
 var
-  Style: NativeInt;
+  Style: Integer;
 begin
   Style := GetWindowLong(Handle, GWL_EXSTYLE);
   if Value then
@@ -128,7 +131,7 @@ begin
   Result := True;
 end;
 
-procedure TAlphaBlendFrame.OnEvents(hwnd: HWND; nEvent: NativeInt; lParam: LPARAM);
+procedure TAlphaBlendFrame.OnEvents(hwnd: HWND; nEvent: Cardinal; lParam: LPARAM);
 var
   S: string;
 begin
@@ -140,6 +143,7 @@ begin
       try
         FOpenStartup := ReadBool('AlphaBlend', 'OpenStartup', False);
         FAlphaBlend := ReadInteger('AlphaBlend', 'AlphaBlend', 192);
+        FEnableShortCut := ReadBool('AlphaBlend', 'EnableShortCut', True);
       finally
         Free;
       end;
@@ -155,6 +159,7 @@ begin
         try
           WriteBool('AlphaBlend', 'OpenStartup', FOpenStartup);
           WriteInteger('AlphaBlend', 'AlphaBlend', FAlphaBlend);
+          WriteBool('AlphaBlend', 'EnableShortCut', FEnableShortCut);
           UpdateFile;
         finally
           Free;
@@ -165,7 +170,7 @@ begin
   end;
 end;
 
-function TAlphaBlendFrame.PluginProc(hwnd: HWND; nMsg: NativeInt; wParam: WPARAM; lParam: LPARAM): LRESULT;
+function TAlphaBlendFrame.PluginProc(hwnd: HWND; nMsg: Cardinal; wParam: WPARAM; lParam: LPARAM): LRESULT;
 begin
   Result := 0;
   case nMsg of
