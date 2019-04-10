@@ -60,6 +60,7 @@ object PropForm: TPropForm
     MaxLength = 3
     MaxValue = 100
     MinValue = 1
+    NumbersOnly = True
     TabOrder = 2
     Value = 1
   end
